@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model chat_members {
+  id        Int       @id @default(autoincrement())
+  chat_id   Int?
+  user_id   Int?
+  joined_at DateTime? @default(now()) @db.Timestamp(6)
+  chats     chats?    @relation(fields: [chat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users     users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model chat_types {
+  id    Int     @id @default(autoincrement())
+  type  String  @unique
+  chats chats[]
+}
+
+model chats {
+  id           Int            @id @default(autoincrement())
+  type_id      Int?
+  name         String?
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  chat_members chat_members[]
+  chat_types   chat_types?    @relation(fields: [type_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  messages     messages[]
+}
+
+model messages {
+  id        Int       @id @default(autoincrement())
+  chat_id   Int?
+  sender_id Int?
+  content   String?
+  timestamp DateTime? @default(now()) @db.Timestamp(6)
+  chats     chats?    @relation(fields: [chat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users     users?    @relation(fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_contact {
+  id      Int    @id @default(autoincrement())
+  user_id Int?
+  phone   String @unique
+  users   users? @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id           Int            @id @default(autoincrement())
+  name         String
+  password     String
+  chat_members chat_members[]
+  messages     messages[]
+  user_contact user_contact[]
+}
